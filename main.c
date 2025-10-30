@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2011 by Mini-Box.com, iTuner Networks Inc.
  * Written by Nicu Pavel <npavel@mini-box.com>
  * All Rights Reserved
@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
- 
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -46,10 +46,10 @@ int main(int argc, char **argv)
     unsigned char data[MAX_TRANSFER_SIZE];
     int ret;
     char *s;
-    int arg = 0, showall = 0, setvoltage = 0, monitor = 0;
+    int arg = 0, showall = 0, setvoltage = 0, monitor = 0, poweron = 0, poweroff = 0;
     double vout = 5.0;
-    
-    while ( ++arg < argc ) 
+
+    while ( ++arg < argc )
     {
 	s = argv[arg];
 	if (strncmp(s, "-a", 2) == 0)
@@ -71,21 +71,31 @@ int main(int argc, char **argv)
 	{
 		monitor = 1;
 	}
+	if (strncmp(s, "-e", 2) == 0)
+	  {
+	    fprintf(stderr,"ON\n");
+	    poweron = 1;
+	  }
+	if (strncmp(s, "-d", 2) == 0)
+	  {
+	    fprintf(stderr,"OFF\n");
+	    poweroff = 1;
+	  }
     }
     h = dcdc_connect();
-    
-    if (h == NULL) 
+
+    if (h == NULL)
     {
 	fprintf(stderr, "Cannot connect to DCDC-USB\n");
 	return 1;
     }
-    
+
     if (dcdc_setup(h) < 0)
     {
 	fprintf(stderr, "Cannot setup device\n");
 	return 2;
     }
-    
+
     if (showall)
     {
 	if ((ret = dcdc_get_status(h, data, MAX_TRANSFER_SIZE)) <= 0)
@@ -109,20 +119,31 @@ int main(int argc, char **argv)
 		sleep(1);
 	}
     }
-    
+
     if (setvoltage)
     {
 	fprintf(stderr, "setting output voltage to: %.2f\n", vout);
 	dcdc_set_vout(h, vout);
-	
+
     }
-    
+
     if ((ret = dcdc_get_vout(h, data, MAX_TRANSFER_SIZE)) <= 0)
     {
 	    fprintf(stderr, "Failed to get voltage from device\n");
 	    return 3;
     }
+
+    if(poweron)
+    {
+      dcdc_on(h);
+    }
+
+    if(poweroff)
+    {
+      dcdc_off(h);
+    }
+
     dcdc_parse_data(data, ret);
-    
+
     return 0;
 }

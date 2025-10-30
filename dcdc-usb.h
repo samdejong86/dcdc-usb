@@ -11,11 +11,15 @@ int dcdc_send(struct usb_dev_handle *h, unsigned char *data, int size);
 int dcdc_recv(struct usb_dev_handle *h, unsigned char *data, int size, int timeout);
 int dcdc_setup(struct usb_dev_handle *h);
 
+
+
 /* DCDC USB protocol */
 int dcdc_get_status(struct usb_dev_handle *h, unsigned char *buf, int buflen);
 int dcdc_set_vout(struct usb_dev_handle *h, double vout);
 int dcdc_get_vout(struct usb_dev_handle *h, unsigned char *buf, int buflen);
 int dcdc_parse_data(unsigned char *data, int size);
+int dcdc_off(struct usb_dev_handle *h);
+int dcdc_on(struct usb_dev_handle *h);
 
 /* DCDC USB data parsing */
 void dcdc_parse_values(unsigned char *data);

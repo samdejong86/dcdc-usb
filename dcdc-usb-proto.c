@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2011 by Mini-Box.com, iTuner Networks Inc.
  * Written by Nicu Pavel <npavel@mini-box.com>
  * All Rights Reserved
@@ -47,33 +47,48 @@ static int dcdc_send_command(struct usb_dev_handle *h, unsigned char cmd, unsign
     c[0] = DCDCUSB_CMD_OUT;
     c[1] = cmd;
     c[2] = val;
-    
+
     return dcdc_send(h, c, 3);
 }
+
+int dcdc_off(struct usb_dev_handle *h)
+{
+  int ret = 0;
+  ret = dcdc_send_command(h, CMD_SET_OUTPUT, 0);
+  return ret;
+}
+
+int dcdc_on(struct usb_dev_handle *h)
+{
+  int ret = 0;
+  ret = dcdc_send_command(h, CMD_SET_OUTPUT, 1);
+  return ret;
+}
+
 
 int dcdc_get_status(struct usb_dev_handle *h, unsigned char *buf, int buflen)
 {
     unsigned char c[2];
     int ret = 0;
-    
+
     if (buflen < MAX_TRANSFER_SIZE)
 	return -1;
-	
+
     c[0] = DCDCUSB_GET_ALL_VALUES;
     c[1] = 0;
-    
+
     if (dcdc_send(h, c, 2) < 0)
     {
 	fprintf(stderr, "Cannot send command to device\n");
 	return -2;
     }
-    
+
     if ((ret = dcdc_recv(h, buf, MAX_TRANSFER_SIZE, 1000)) < 0)
     {
 	fprintf(stderr, "Cannot get device status\n");
 	return -3;
     }
-    
+
     return ret;
 }
 
@@ -81,7 +96,7 @@ int dcdc_set_vout(struct usb_dev_handle *h, double vout)
 {
     if (vout < 5) vout = 5;
     if (vout > 24) vout = 24;
-    
+
     return dcdc_send_command(h, CMD_WRITE_VOUT, vout2dev(vout));
 }
 
@@ -89,7 +104,7 @@ int dcdc_set_vout(struct usb_dev_handle *h, double vout)
 int dcdc_get_vout(struct usb_dev_handle *h, unsigned char *buf, int buflen)
 {
     int ret = 0;
-    
+
     if (buflen < MAX_TRANSFER_SIZE)
 	return -1;
 
@@ -125,6 +140,6 @@ int dcdc_parse_data(unsigned char *data, int size)
 	default:
 	    fprintf(stderr, "Unknown message\n");
     }
-    
+
     return 0;
 }
