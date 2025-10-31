@@ -15,7 +15,8 @@ int dcdc_setup(struct usb_dev_handle *h);
 
 /* DCDC USB protocol */
 int dcdc_get_status(struct usb_dev_handle *h, unsigned char *buf, int buflen);
-int dcdc_set_vout(struct usb_dev_handle *h, double vout);
+int dcdc_set_vout(struct usb_dev_handle *h, double vout);;
+int dcdc_set_raw(struct usb_dev_handle *h, unsigned char val);
 int dcdc_get_vout(struct usb_dev_handle *h, unsigned char *buf, int buflen);
 int dcdc_parse_data(unsigned char *data, int size);
 int dcdc_off(struct usb_dev_handle *h);

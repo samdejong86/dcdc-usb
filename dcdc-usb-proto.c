@@ -92,6 +92,14 @@ int dcdc_get_status(struct usb_dev_handle *h, unsigned char *buf, int buflen)
     return ret;
 }
 
+int dcdc_set_raw(struct usb_dev_handle *h, unsigned char val)
+{
+
+  return dcdc_send_command(h, CMD_WRITE_VOUT, val);
+
+}
+
+
 int dcdc_set_vout(struct usb_dev_handle *h, double vout)
 {
     if (vout < 5) vout = 5;
