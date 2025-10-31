@@ -38,6 +38,8 @@ void showhelp(char *prgname)
     printf (" -h \t show help message\n");
     printf (" -v \t set voltage out value (float)\n");
     printf (" -o \t continously output ignition voltage in 1 second intervals\n");
+    printf (" -e \t enable output voltage\n");
+    printf (" -d \t disable output voltage\n");
 }
 
 int main(int argc, char **argv)
