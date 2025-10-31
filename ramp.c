@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2011 by Mini-Box.com, iTuner Networks Inc.
- * Written by Nicu Pavel <npavel@mini-box.com>
- * All Rights Reserved
+ * Written by Sam de Jong, based on dcdc-usb written by
+ * Nicu Pavel <npavel@mini-box.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,29 +34,49 @@ void showhelp(char *prgname)
 
     printf ("Usage: %s [OPTION]\n", prgname);
     printf ("Options:.\n");
-    printf (" -u \t ramp up\n");
-    printf (" -d \t ramp down\n");
+    printf (" -i \t interval in seconds between steps\n");
+    printf (" -s \t start value (255-0: high value is low voltage)\n");
+    printf (" -e \t end value (255-0: high value is low voltage)\n");
+    printf (" -t \t turn power on/off\n");
+
 }
 
 int main(int argc, char **argv)
 {
     struct usb_dev_handle *h;
     char *s;
-    int arg = 0, up = 0, down = 0;
+    int arg = 0, up = 0, down = 0, interval = 0, start=0, end=0, onoff=0;
 
     while ( ++arg < argc )
     {
 	s = argv[arg];
-	if (strncmp(s, "-u", 2) == 0)
-	    up = 1;
 	if (strncmp(s, "-h", 2) == 0)
 	{
 	    showhelp(argv[0]);
 	    return 0;
 	}
-	if (strncmp(s, "-d", 2) == 0)
+	if (strncmp(s, "-i", 2) == 0)
+	    if (arg + 1 < argc)
+	    {
+		arg++;
+		interval = strtod(argv[arg], NULL);
+	    }
+	if (strncmp(s, "-s", 2) == 0)
+	    if (arg + 1 < argc)
+	    {
+		arg++;
+		start = strtod(argv[arg], NULL);
+	    }
+	if (strncmp(s, "-e", 2) == 0)
+	    if (arg + 1 < argc)
+	    {
+		arg++;
+		end = strtod(argv[arg], NULL);
+	    }
+
+	if (strncmp(s, "-t", 2) == 0)
 	{
-	  down = 1;
+	  onoff = 1;
 	}
     }
     h = dcdc_connect();
@@ -74,50 +93,82 @@ int main(int argc, char **argv)
 	return 2;
     }
 
+    if(start == end){
+      fprintf(stderr, "Start value and end value must be different\n");
+      return 2;
+    }
+    else if (interval == 0){
+      fprintf(stderr, "No interval specified\n");
+      return 2;
+    }
+    else if(start > end)
+      up = 1;
+    else if(start < end)
+      down = 1;
+
+
     if(up)
     {
+
+      if (start <= end){
+	fprintf(stderr, "Start value must be greater than end value\n");
+	return 3;
+      }
+
+      unsigned char val = (unsigned char)start;
 
       time_t currentTime;
       time(&currentTime);
 
-      printf("ramp up started at %s\n", ctime(&currentTime));
+      printf("ramp up started at %s", ctime(&currentTime));
+      printf("  starting at value: %d\n", val);
 
-      unsigned char val = 33;
       dcdc_set_raw(h, val);
-      dcdc_on(h);
 
-      for(int i=0; i<30; i++)
+
+      if(onoff)
+	dcdc_on(h);
+
+      while(val>=end)
 	{
 	  val--;
 	  dcdc_set_raw(h, val);
-	  sleep(60);
+	  sleep(interval);
 	}
 
 
       time(&currentTime);
-      printf("ramp up finished at %s\n", ctime(&currentTime));
+      printf("ramp up finished at %s", ctime(&currentTime));
+      printf("  ending at value: %d\n", val);
 
 
 
     } else if(down)
     {
 
+      if (start >= end){
+	fprintf(stderr, "Start value must be greater than end value\n");
+	return 3;
+      }
+
+      unsigned char val = (unsigned char)start;
+
       time_t currentTime;
       time(&currentTime);
 
-      printf("ramp down started at %s\n", ctime(&currentTime));
+      printf("ramp down started at %s", ctime(&currentTime));
+      printf("  starting at value: %d\n", val);
 
-      unsigned char val = 3;
-      for(int i=0; i<30; i++)
+
+      while(val<=end)
 	{
-	  dcdc_set_raw(h, val);
 	  val++;
-	  sleep(60);
+	  dcdc_set_raw(h, val);
+	  sleep(interval);
 	}
 
-
-      dcdc_off(h);
-
+      if(onoff)
+	dcdc_off(h);
 
       time(&currentTime);
       printf("ramp down finished at %s\n", ctime(&currentTime));
